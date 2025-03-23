@@ -26,6 +26,10 @@ from media_platform.zhihu import ZhihuCrawler
 
 
 class CrawlerFactory:
+    """
+    爬虫工厂类，用于根据不同的媒体平台创建相应的爬虫实例。
+    """
+    # 定义一个字典，将平台名称映射到对应的爬虫类
     CRAWLERS = {
         "xhs": XiaoHongShuCrawler,
         "dy": DouYinCrawler,
@@ -38,25 +42,44 @@ class CrawlerFactory:
 
     @staticmethod
     def create_crawler(platform: str) -> AbstractCrawler:
+        """
+        根据给定的平台名称创建相应的爬虫实例。
+
+        :param platform: 媒体平台的名称，如 "xhs", "dy", "ks" 等。
+        :return: 对应平台的爬虫实例，继承自 AbstractCrawler 类。
+        :raises ValueError: 如果提供的平台名称无效，抛出此异常。
+        """
+        # 从 CRAWLERS 字典中获取对应平台的爬虫类
         crawler_class = CrawlerFactory.CRAWLERS.get(platform)
+        # 检查是否找到了对应的爬虫类
         if not crawler_class:
+            # 如果未找到，抛出 ValueError 异常
             raise ValueError("Invalid Media Platform Currently only supported xhs or dy or ks or bili ...")
+        # 创建并返回爬虫实例
         return crawler_class()
 
 
 async def main():
+    """
+    主异步函数，用于协调整个爬虫程序的运行。
+    包括解析命令行参数、初始化数据库、创建并启动爬虫，最后关闭数据库连接。
+    """
     # parse cmd
-    await cmd_arg.parse_cmd()
+    await cmd_arg.parse_cmd()  # 异步解析命令行参数
 
     # init db
     if config.SAVE_DATA_OPTION == "db":
+        # 如果配置为将数据保存到数据库，则异步初始化数据库
         await db.init_db()
 
+    # 使用CrawlerFactory根据配置中的平台创建相应的爬虫实例
     crawler = CrawlerFactory.create_crawler(platform=config.PLATFORM)
-    await crawler.start()
+    await crawler.start()  # 异步启动爬虫
 
     if config.SAVE_DATA_OPTION == "db":
+        # 如果配置为将数据保存到数据库，则异步关闭数据库连接
         await db.close()
+
 
     
 
