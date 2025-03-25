@@ -368,6 +368,57 @@ class XiaoHongShuClient(AbstractApiClient):
             )
             result.extend(sub_comments)
         return result
+    async def get_note_all_comments_by_dict(
+        self,
+        note_id: dict,
+        xsec_token: str,
+        crawl_interval: float = 1.0,
+        callback: Optional[Callable] = None,
+        max_count: int = 10,
+    ) -> List[Dict]:
+        """
+        获取指定笔记下的所有一级评论，该方法会一直查找一个帖子下的所有评论信息
+        Args:
+            note_id: 笔记ID
+            xsec_token: 验证token
+            crawl_interval: 爬取一次笔记的延迟单位（秒）
+            callback: 一次笔记爬取结束后
+            max_count: 一次笔记爬取的最大评论数量
+        Returns:
+
+        """
+        result = []
+        comments_has_more = True
+        comments_cursor = ""
+        while comments_has_more and len(result) < max_count:
+            comments_res = await self.get_note_comments(
+                note_id=note_id.get("note_id"), xsec_token=xsec_token, cursor=comments_cursor
+            )
+            comments_has_more = comments_res.get("has_more", False)
+            comments_cursor = comments_res.get("cursor", "")
+            if "comments" not in comments_res:
+                utils.logger.info(
+                    f"[XiaoHongShuClient.get_note_all_comments] No 'comments' key found in response: {comments_res}"
+                )
+                break
+            comments = comments_res["comments"]
+            for comment in comments:
+                comment["title"] = note_id.get("title")
+                comment["desc"] = note_id.get("desc")
+            if len(result) + len(comments) > max_count:
+                comments = comments[: max_count - len(result)]
+            if callback:
+                await callback(note_id, comments)
+            await asyncio.sleep(crawl_interval)
+            result.extend(comments)
+            sub_comments = await self.get_comments_all_sub_comments(
+                comments=comments,
+                xsec_token=xsec_token,
+                crawl_interval=crawl_interval,
+                callback=callback,
+            )
+            result.extend(sub_comments)
+        return result
 
     async def get_comments_all_sub_comments(
         self,

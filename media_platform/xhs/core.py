@@ -175,7 +175,7 @@ class XiaoHongShuCrawler(AbstractCrawler):
                         f"[XiaoHongShuCrawler.search] search xhs keyword: {keyword}, page: {page}"
                     )
                     # 初始化笔记ID列表
-                    note_ids: List[str] = []
+                    note_ids: List[dict] = []
                     # 初始化xsec_token列表
                     xsec_tokens: List[str] = []
                     # 通过关键词搜索笔记
@@ -220,7 +220,7 @@ class XiaoHongShuCrawler(AbstractCrawler):
                             # 获取笔记的媒体信息
                             await self.get_notice_media(note_detail)
                             # 将笔记ID添加到列表中
-                            note_ids.append(note_detail.get("note_id"))
+                            note_ids.append(note_detail)
                             # 将xsec_token添加到列表中
                             xsec_tokens.append(note_detail.get("xsec_token"))
                     # 页码加1
@@ -230,7 +230,7 @@ class XiaoHongShuCrawler(AbstractCrawler):
                         f"[XiaoHongShuCrawler.search] Note details: {note_details}"
                     )
                     # 批量获取笔记的评论信息
-                    await self.batch_get_note_comments(note_ids, xsec_tokens)
+                    await self.batch_get_note_comments_by_dict(note_ids, xsec_tokens)
                 except DataFetchError:
                     # 记录日志，表示获取笔记详情时出错
                     utils.logger.error(
@@ -461,6 +461,40 @@ class XiaoHongShuCrawler(AbstractCrawler):
             task_list.append(task)
         # 并发执行任务，获取笔记的评论信息
         await asyncio.gather(*task_list)
+    async def batch_get_note_comments_by_dict(
+        self, note_list: List[dict], xsec_tokens: List[str]
+    ):
+        """
+        批量获取笔记的评论信息
+        """
+        # 如果未启用获取评论功能，记录日志并返回
+        if not config.ENABLE_GET_COMMENTS:
+            utils.logger.info(
+                f"[XiaoHongShuCrawler.batch_get_note_comments] Crawling comment mode is not enabled"
+            )
+            return
+
+        # 记录日志，表示开始批量获取笔记的评论信息
+        utils.logger.info(
+            f"[XiaoHongShuCrawler.batch_get_note_comments] Begin batch get note comments, note list: {note_list}"
+        )
+        # 创建异步信号量，控制并发数量
+        semaphore = asyncio.Semaphore(config.MAX_CONCURRENCY_NUM)
+        # 初始化任务列表
+        task_list: List[Task] = []
+        # 遍历笔记ID列表
+        for index, note_id in enumerate(note_list):
+            # 创建异步任务，获取笔记的评论信息
+            task = asyncio.create_task(
+                self.get_comments_by_dict(
+                    note_id=note_id, xsec_token=xsec_tokens[index], semaphore=semaphore
+                ),
+                name=note_id.get("note_id"),
+            )
+            # 将任务添加到任务列表中
+            task_list.append(task)
+        # 并发执行任务，获取笔记的评论信息
+        await asyncio.gather(*task_list)
 
     async def get_comments(
         self, note_id: str, xsec_token: str, semaphore: asyncio.Semaphore
@@ -481,6 +515,31 @@ class XiaoHongShuCrawler(AbstractCrawler):
                 crawl_interval = random.uniform(1, config.CRAWLER_MAX_SLEEP_SEC)
             # 获取笔记的所有评论信息
             await self.xhs_client.get_note_all_comments(
+                note_id=note_id,
+                xsec_token=xsec_token,
+                crawl_interval=crawl_interval,
+                callback=xhs_store.batch_update_xhs_note_comments,
+                max_count=CRAWLER_MAX_COMMENTS_COUNT_SINGLENOTES,
+            )
+    async def get_comments_by_dict(
+        self, note_id: dict, xsec_token: str, semaphore: asyncio.Semaphore
+    ):
+        """
+        获取笔记的评论信息，并进行关键词过滤和数量限制
+        """
+        # 使用异步信号量控制并发
+        async with semaphore:
+            # 记录日志，表示开始获取指定笔记的评论信息
+            utils.logger.info(
+                f"[XiaoHongShuCrawler.get_comments] Begin get note id comments {note_id}"
+            )
+            # 如果未启用代理，增加爬取间隔
+            if config.ENABLE_IP_PROXY:
+                crawl_interval = random.random()
+            else:
+                crawl_interval = random.uniform(1, config.CRAWLER_MAX_SLEEP_SEC)
+            # 获取笔记的所有评论信息
+            await self.xhs_client.get_note_all_comments_by_dict(
                 note_id=note_id,
                 xsec_token=xsec_token,
                 crawl_interval=crawl_interval,

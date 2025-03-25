@@ -91,7 +91,7 @@ async def update_xhs_note(note_item: Dict):
 
     title =  note_item.get("title")
     content = note_item.get("desc", "")
-
+    utils.logger.info(f"[store.xhs.update_xhs_note] xhs note: 开始请求大模型分析笔记")
     class Output_cls_JSON(BaseModel):
         potential_customers: str
         intention_rate: str
@@ -134,7 +134,7 @@ async def update_xhs_note(note_item: Dict):
     cleaned_response = response.replace('json', '').replace('```', '').strip()
     # 解析 JSON 字符串
     data = json.loads(cleaned_response)
-
+    utils.logger.info(f"[store.xhs.update_xhs_note] xhs note: 结束请求大模型分析笔记")
     local_db_item = {
         "note_id": note_item.get("note_id"), # 帖子id
         "type": note_item.get("type"), # 帖子类型
@@ -199,7 +199,7 @@ async def update_xhs_note_comment(note_id: str, comment_item: Dict):
         "comment_id": comment_id, # 评论id
         "create_time": comment_item.get("create_time"), # 评论时间
         "ip_location": comment_item.get("ip_location"), # ip地址
-        "note_id": note_id, # 帖子id
+        "note_id": note_id.get('note_id'), # 帖子id
         "content": comment_item.get("content"), # 评论内容
         "user_id": user_info.get("user_id"), # 用户id
         "nickname": user_info.get("nickname"), # 用户昵称
@@ -209,6 +209,8 @@ async def update_xhs_note_comment(note_id: str, comment_item: Dict):
         "parent_comment_id": target_comment.get("id", 0), # 父评论id
         "last_modify_ts": utils.get_current_timestamp(), # 最后更新时间戳（MediaCrawler程序生成的，主要用途在db存储的时候记录一条记录最新更新时间）
         "like_count": comment_item.get("like_count", 0),
+        "title": comment_item.get("title"),
+        "desc": comment_item.get("desc"),
     }
     utils.logger.info(f"[store.xhs.update_xhs_note_comment] xhs note comment:{local_db_item}")
     await XhsStoreFactory.create_store().store_comment(local_db_item)

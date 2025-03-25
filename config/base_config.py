@@ -12,8 +12,8 @@
 # 基础配置
 PLATFORM = "xhs"
 KEYWORDS = "上海买车攻略"  # 关键词搜索配置，以英文逗号分隔
-LOGIN_TYPE = "qrcode"  # qrcode or phone or cookie
-COOKIES = ""
+LOGIN_TYPE = "cookie"  # qrcode or phone or cookie
+COOKIES = "abRequestId=d609f5e1-edd2-5350-90e9-3d2d3ade0463; a1=194c11c94cdlcfluqjysm8xy0r6f9ohmxays3qg5x50000924630; webId=3438af75efefff7fb2a13120bcf51d2e; gid=yj4SyySji8CJyj4SyySj40AkSf1Si17AVvM6v2CYCv8FKM28ijlx6q888jJ4Kq88fj4Y8iYW; web_session=0400698df4f18f0a34308a9bea354b3efed412; webBuild=4.60.2; acw_tc=0a0bb25517429098476622008e4d5770c14f8df78cf357264224600198c959; websectiga=634d3ad75ffb42a2ade2c5e1705a73c845837578aeb31ba0e442d75c648da36a; sec_poison_id=4f681f19-bc4d-4c2c-abca-959ffa03bfe3; xsecappid=xhs-pc-web; loadts=1742909913016; unread={%22ub%22:%2267d9fb1e000000000903a008%22%2C%22ue%22:%2267d452ee000000000900d83d%22%2C%22uc%22:30}"
 # 具体值参见media_platform.xxx.field下的枚举值，暂时只支持小红书
 SORT_TYPE = "popularity_descending"
 # 具体值参见media_platform.xxx.field下的枚举值，暂时只支持抖音
@@ -55,7 +55,7 @@ USER_DATA_DIR = "%s_user_data_dir"  # %s will be replaced by platform name
 START_PAGE = 1
 
 # 爬取视频/帖子的数量控制
-CRAWLER_MAX_NOTES_COUNT = 3
+CRAWLER_MAX_NOTES_COUNT = 1
 
 # 并发爬虫数量控制
 MAX_CONCURRENCY_NUM = 1
