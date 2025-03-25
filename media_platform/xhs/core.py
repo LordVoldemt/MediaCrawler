@@ -33,7 +33,11 @@ from .exception import DataFetchError
 from .field import SearchSortType
 from .help import parse_note_info_from_note_url, get_search_id
 from .login import XiaoHongShuLogin
+from pydantic import BaseModel
 
+from tools.send_model import SiliconFlow
+import json
+from constant import model as model_constant
 
 class XiaoHongShuCrawler(AbstractCrawler):
     # 定义浏览器上下文页面

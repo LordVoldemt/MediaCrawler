@@ -3,16 +3,14 @@ from pydantic import BaseModel
 from tools.send_model import SiliconFlow
 import json
 from constant import model as model_constant
+
+
+class Output_cls_JSON(BaseModel):
+    potential_customers: str
+    intention_rate: str
+    explain: str
 if __name__ == "__main__":
     llm = SiliconFlow()
-
-
-    class Output_cls_JSON(BaseModel):
-        potential_customers: str
-        intention_rate: str
-        explain: str
-
-
     schema = Output_cls_JSON.model_json_schema()
     title = '天气不错，'
     content = f"""
