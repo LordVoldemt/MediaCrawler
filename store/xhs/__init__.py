@@ -127,37 +127,43 @@ async def update_xhs_note(note_item: Dict):
         {content}
         </question>
         """
-    response = llm._call(prompt=prompt, model=MODEL_CONSTANT.MODEL_NAME)
-    # 去掉 `json` 开头和 `'''` 结尾
-    cleaned_response = response.replace('json', '').replace('```', '').strip()
-    # 解析 JSON 字符串
-    data = json.loads(cleaned_response)
+    data = {}
+    try:
+        response = llm._call(prompt=prompt, model=MODEL_CONSTANT.MODEL_NAME)
+        # 去掉 `json` 开头和 `'''` 结尾
+        cleaned_response = response.replace('json', '').replace('```', '').strip()
+        # 解析 JSON 字符串
+        data = json.loads(cleaned_response)
+    except Exception as e:
+        print(f"转换json失败{e}")
+
     utils.logger.info(f"[store.xhs.update_xhs_note] xhs note: 结束请求大模型分析笔记")
     local_db_item = {
-        "note_id": note_item.get("note_id"), # 帖子id
-        "type": note_item.get("type"), # 帖子类型
-        "title": note_item.get("title") or note_item.get("desc", "")[:255], # 帖子标题
-        "desc": note_item.get("desc", ""), # 帖子描述
-        "video_url": video_url, # 帖子视频url
-        "time": note_item.get("time"), # 帖子发布时间
-        "last_update_time": note_item.get("last_update_time", 0), # 帖子最后更新时间
-        "user_id": user_info.get("user_id"), # 用户id
-        "nickname": user_info.get("nickname"), # 用户昵称
-        "avatar": user_info.get("avatar"), # 用户头像
-        "liked_count": interact_info.get("liked_count"), # 点赞数
-        "collected_count": interact_info.get("collected_count"), # 收藏数
-        "comment_count": interact_info.get("comment_count"), # 评论数
-        "share_count": interact_info.get("share_count"), # 分享数
-        "ip_location": note_item.get("ip_location", ""), # ip地址
-        "image_list": ','.join([img.get('url', '') for img in image_list]), # 图片url
-        "tag_list": ','.join([tag.get('name', '') for tag in tag_list if tag.get('type') == 'topic']), # 标签
-        "last_modify_ts": utils.get_current_timestamp(), # 最后更新时间戳（MediaCrawler程序生成的，主要用途在db存储的时候记录一条记录最新更新时间）
-        "note_url": f"https://www.xiaohongshu.com/explore/{note_id}?xsec_token={note_item.get('xsec_token')}&xsec_source=pc_search", # 帖子url
-        "source_keyword": source_keyword_var.get(), # 搜索关键词
-        "xsec_token": note_item.get("xsec_token"), # xsec_token
-        "potential_customers": data.get('potential_customers'), # potential_customers
-        "intention_rate": data.get('intention_rate'), # intention_rate
-        "explain": data.get('explain'), # explain
+        "note_id": note_item.get("note_id"),  # 帖子id
+        "type": note_item.get("type"),  # 帖子类型
+        "title": note_item.get("title") or note_item.get("desc", "")[:255],  # 帖子标题
+        "desc": note_item.get("desc", ""),  # 帖子描述
+        "video_url": video_url,  # 帖子视频url
+        "time": note_item.get("time"),  # 帖子发布时间
+        "last_update_time": note_item.get("last_update_time", 0),  # 帖子最后更新时间
+        "user_id": user_info.get("user_id"),  # 用户id
+        "nickname": user_info.get("nickname"),  # 用户昵称
+        "avatar": user_info.get("avatar"),  # 用户头像
+        "liked_count": interact_info.get("liked_count"),  # 点赞数
+        "collected_count": interact_info.get("collected_count"),  # 收藏数
+        "comment_count": interact_info.get("comment_count"),  # 评论数
+        "share_count": interact_info.get("share_count"),  # 分享数
+        "ip_location": note_item.get("ip_location", ""),  # ip地址
+        "image_list": ','.join([img.get('url', '') for img in image_list]),  # 图片url
+        "tag_list": ','.join([tag.get('name', '') for tag in tag_list if tag.get('type') == 'topic']),  # 标签
+        "last_modify_ts": utils.get_current_timestamp(),  # 最后更新时间戳（MediaCrawler程序生成的，主要用途在db存储的时候记录一条记录最新更新时间）
+        "note_url": f"https://www.xiaohongshu.com/explore/{note_id}?xsec_token={note_item.get('xsec_token')}&xsec_source=pc_search",
+        # 帖子url
+        "source_keyword": source_keyword_var.get(),  # 搜索关键词
+        "xsec_token": note_item.get("xsec_token"),  # xsec_token
+        "potential_customers": data.get('potential_customers', ""),  # potential_customers
+        "intention_rate": data.get('intention_rate', ""),  # intention_rate
+        "explain": data.get('explain', ""),  # explain
     }
     utils.logger.info(f"[store.xhs.update_xhs_note] xhs note: {local_db_item}")
     await XhsStoreFactory.create_store().store_content(local_db_item)
@@ -230,31 +236,35 @@ async def update_xhs_note_comment(note_id: str, comment_item: Dict):
             {comment}
             </question>
             """
-    response = llm._call(prompt=prompt, model=MODEL_CONSTANT.MODEL_NAME)
-    # 去掉 `json` 开头和 `'''` 结尾
-    cleaned_response = response.replace('json', '').replace('```', '').strip()
-    # 解析 JSON 字符串
-    data = json.loads(cleaned_response)
+    data = {}
+    try:
+        response = llm._call(prompt=prompt, model=MODEL_CONSTANT.MODEL_NAME)
+        # 去掉 `json` 开头和 `'''` 结尾
+        cleaned_response = response.replace('json', '').replace('```', '').strip()
+        # 解析 JSON 字符串
+        data = json.loads(cleaned_response)
+    except Exception as e:
+        print(f"转换json失败{e}")
     utils.logger.info(f"[store.xhs.update_xhs_note_comment] xhs note: 结束请求大模型分析评论")
     local_db_item = {
-        "comment_id": comment_id, # 评论id
-        "create_time": comment_item.get("create_time"), # 评论时间
-        "ip_location": comment_item.get("ip_location"), # ip地址
-        "note_id": note_id.get('note_id'), # 帖子id
-        "content": comment_item.get("content"), # 评论内容
-        "user_id": user_info.get("user_id"), # 用户id
-        "nickname": user_info.get("nickname"), # 用户昵称
-        "avatar": user_info.get("image"), # 用户头像
-        "sub_comment_count": comment_item.get("sub_comment_count", 0), # 子评论数
-        "pictures": ",".join(comment_pictures), # 评论图片
-        "parent_comment_id": target_comment.get("id", 0), # 父评论id
-        "last_modify_ts": utils.get_current_timestamp(), # 最后更新时间戳（MediaCrawler程序生成的，主要用途在db存储的时候记录一条记录最新更新时间）
+        "comment_id": comment_id,  # 评论id
+        "create_time": comment_item.get("create_time"),  # 评论时间
+        "ip_location": comment_item.get("ip_location"),  # ip地址
+        "note_id": note_id.get('note_id'),  # 帖子id
+        "content": comment_item.get("content"),  # 评论内容
+        "user_id": user_info.get("user_id"),  # 用户id
+        "nickname": user_info.get("nickname"),  # 用户昵称
+        "avatar": user_info.get("image"),  # 用户头像
+        "sub_comment_count": comment_item.get("sub_comment_count", 0),  # 子评论数
+        "pictures": ",".join(comment_pictures),  # 评论图片
+        "parent_comment_id": target_comment.get("id", 0),  # 父评论id
+        "last_modify_ts": utils.get_current_timestamp(),  # 最后更新时间戳（MediaCrawler程序生成的，主要用途在db存储的时候记录一条记录最新更新时间）
         "like_count": comment_item.get("like_count", 0),
         "title": comment_item.get("title"),
         "desc": comment_item.get("desc"),
-        "potential_customers": data.get('potential_customers'),  # potential_customers
-        "intention_rate": data.get('intention_rate'),  # intention_rate
-        "explain": data.get('explain'),  # explain
+        "potential_customers": data.get('potential_customers', ""),  # potential_customers
+        "intention_rate": data.get('intention_rate', ""),  # intention_rate
+        "explain": data.get('explain', ""),  # explain
     }
     utils.logger.info(f"[store.xhs.update_xhs_note_comment] xhs note comment:{local_db_item}")
     await XhsStoreFactory.create_store().store_comment(local_db_item)
