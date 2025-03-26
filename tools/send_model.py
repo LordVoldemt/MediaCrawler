@@ -1,13 +1,13 @@
-import os
+import time
 
 import requests
 from langchain.llms.base import LLM
 from langchain_community.llms.utils import enforce_stop_tokens
-from pydantic import BaseModel
-import json
-# 设置API密钥和基础URL环境变量
 
-from constant import model as model_constant
+from constant import model as MODEL_CONSTANT
+
+
+# 设置API密钥和基础URL环境变量
 
 
 class SiliconFlow(LLM):
@@ -27,10 +27,10 @@ class SiliconFlow(LLM):
         headers = {
             "accept": "application/json",
             "content-type": "application/json",
-            "authorization": f"Bearer {model_constant.API_KEY}"
+            "authorization": f"Bearer {MODEL_CONSTANT.API_KEY}"
         }
-
-        response = requests.post(model_constant.BASE_URL, json=payload, headers=headers)
+        time.sleep(0.5)  # 休眠一秒
+        response = requests.post(MODEL_CONSTANT.BASE_URL, json=payload, headers=headers)
         response.raise_for_status()
         return response.json()["choices"][0]["message"]["content"]
 

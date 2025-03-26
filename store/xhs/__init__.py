@@ -18,7 +18,7 @@ from typing import List
 
 from pydantic import BaseModel
 
-from constant import model as model_constant
+from constant import model as MODEL_CONSTANT
 from tools.send_model import SiliconFlow
 from var import source_keyword_var
 from . import xhs_store_impl
@@ -127,7 +127,7 @@ async def update_xhs_note(note_item: Dict):
         {content}
         </question>
         """
-    response = llm._call(prompt=prompt, model=model_constant.MODEL_NAME)
+    response = llm._call(prompt=prompt, model=MODEL_CONSTANT.MODEL_NAME)
     # 去掉 `json` 开头和 `'''` 结尾
     cleaned_response = response.replace('json', '').replace('```', '').strip()
     # 解析 JSON 字符串
@@ -230,7 +230,7 @@ async def update_xhs_note_comment(note_id: str, comment_item: Dict):
             {comment}
             </question>
             """
-    response = llm._call(prompt=prompt, model=model_constant.MODEL_NAME)
+    response = llm._call(prompt=prompt, model=MODEL_CONSTANT.MODEL_NAME)
     # 去掉 `json` 开头和 `'''` 结尾
     cleaned_response = response.replace('json', '').replace('```', '').strip()
     # 解析 JSON 字符串
