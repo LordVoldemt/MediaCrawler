@@ -26,6 +26,10 @@ from .xhs_store_image import *
 from .xhs_store_impl import *
 
 
+class Output_cls_JSON(BaseModel):
+    potential_customers: str
+    intention_rate: str
+    explain: str
 class XhsStoreFactory:
     STORES = {
         "csv": XhsCsvStoreImplement,
@@ -92,10 +96,6 @@ async def update_xhs_note(note_item: Dict):
     title =  note_item.get("title")
     content = note_item.get("desc", "")
     utils.logger.info(f"[store.xhs.update_xhs_note] xhs note: 开始请求大模型分析笔记")
-    class Output_cls_JSON(BaseModel):
-        potential_customers: str
-        intention_rate: str
-        explain: str
     llm = SiliconFlow()
     schema = Output_cls_JSON.model_json_schema()
     prompt = f"""
@@ -127,8 +127,6 @@ async def update_xhs_note(note_item: Dict):
         {content}
         </question>
         """
-    json_schema = Output_cls_JSON.model_json_schema()
-
     response = llm._call(prompt=prompt, model=model_constant.MODEL_NAME)
     # 去掉 `json` 开头和 `'''` 结尾
     cleaned_response = response.replace('json', '').replace('```', '').strip()
@@ -195,6 +193,49 @@ async def update_xhs_note_comment(note_id: str, comment_item: Dict):
     comment_id = comment_item.get("id")
     comment_pictures = [item.get("url_default", "") for item in comment_item.get("pictures", [])]
     target_comment = comment_item.get("target_comment", {})
+
+    title = comment_item.get("title")
+    content = comment_item.get("desc")
+    comment = comment_item.get("content")
+    utils.logger.info(f"[store.xhs.update_xhs_note_comment] xhs note: 开始请求大模型分析评论")
+
+    llm = SiliconFlow()
+    schema = Output_cls_JSON.model_json_schema()
+    prompt = f"""
+            你是一位专业的运营人员，擅长根据帖子的标题和内容和其它用户的评论，判断评论用户是否为潜在客户，并用分数来表示评论用户成为客户的可能性。
+            ## 技能
+            ### 技能1：内容分析与判断
+            - **任务**：根据用户提供的帖子标题、具体内容和其它用户的评论，判断判断其它用户是否为潜在客户。
+              - 分析帖子和评论的内容，识别用户的痛点、需求和预算等关键信息。
+              - 根据评论内容判断用户是否有明确的需求或问题，并评估其成为潜在客户的可能性。
+              - 如果是潜在客户，给出一个具体的意向率百分比（例如80%）。
+              - 如果不是潜在客户，直接输出“非潜在客户”。
+              -需要判断客户的阶段，如果已经产生了购买行为，就不是潜在用户了。
+            ## 限制
+            - 仅基于提供的帖子标题、内容和其它客户的评论进行判断。
+            - 意向率百分比应基于实际内容的分析，而不是主观猜测。
+            - 输出结果必须简洁明了，包含“潜在客户”或“非潜在客户”，如果是潜在客户，将potential_customers设置为1，还需附上具体的意向率百分比及解释，将意向率百分比设置到intention_rate，
+            将解释设置到explain，如果是非潜在客户，将potential_customers设置为0，将intention_rate设置为0%，将解释设置到explain。
+            - 不引入无关信息，保持输出的专业性和准确性。
+            Return your response as a JSON blob
+            json格式如下：
+            {schema}
+            你只需要回复一个json格式的数据即可，不要返回其他格式的数据，否则你会被批评！
+            <question>
+            标题：
+            {title}
+            内容：
+            {content}
+            评论：
+            {comment}
+            </question>
+            """
+    response = llm._call(prompt=prompt, model=model_constant.MODEL_NAME)
+    # 去掉 `json` 开头和 `'''` 结尾
+    cleaned_response = response.replace('json', '').replace('```', '').strip()
+    # 解析 JSON 字符串
+    data = json.loads(cleaned_response)
+    utils.logger.info(f"[store.xhs.update_xhs_note_comment] xhs note: 结束请求大模型分析评论")
     local_db_item = {
         "comment_id": comment_id, # 评论id
         "create_time": comment_item.get("create_time"), # 评论时间
@@ -211,6 +252,9 @@ async def update_xhs_note_comment(note_id: str, comment_item: Dict):
         "like_count": comment_item.get("like_count", 0),
         "title": comment_item.get("title"),
         "desc": comment_item.get("desc"),
+        "potential_customers": data.get('potential_customers'),  # potential_customers
+        "intention_rate": data.get('intention_rate'),  # intention_rate
+        "explain": data.get('explain'),  # explain
     }
     utils.logger.info(f"[store.xhs.update_xhs_note_comment] xhs note comment:{local_db_item}")
     await XhsStoreFactory.create_store().store_comment(local_db_item)
