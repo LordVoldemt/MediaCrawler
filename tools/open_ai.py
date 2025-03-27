@@ -1,6 +1,6 @@
 from openai import OpenAI
 from constant import model as model_constant
-
+import json
 def analyze_potential_customer(title: str, content: str):
     client = OpenAI(
         api_key=model_constant.API_KEY,
@@ -46,4 +46,5 @@ if __name__ == "__main__":
     title = "天气不错，"
     content = "天气不错，今天适合出行。"
     result = analyze_potential_customer(title, content)
-    print(result)
+    result = json.loads(result)
+    print(json.dumps(result, indent=4))

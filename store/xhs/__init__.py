@@ -113,8 +113,8 @@ async def update_xhs_note(note_item: Dict):
         ## 限制
         - 仅基于提供的帖子标题和内容进行判断。
         - 意向率百分比应基于实际内容的分析，而不是主观猜测。
-        - 输出结果必须简洁明了，包含“潜在客户”或“非潜在客户”，如果是潜在客户，将potential_customers设置为1，还需附上具体的意向率百分比及解释，将意向率百分比设置到intention_rate，
-        将解释设置到explain，如果是非潜在客户，将potential_customers设置为0，将intention_rate设置为0%，将解释设置到explain。
+        - 输出结果必须简洁明了，包含“潜在客户”或“非潜在客户”，如果是潜在客户，将potential_customers设置为"潜在客户"，还需附上具体的意向率百分比及解释，将意向率百分比设置到intention_rate，
+        将解释设置到explain，如果是非潜在客户，将potential_customers设置为"非潜在客户"，将intention_rate设置为0%，将解释设置到explain。
         - 不引入无关信息，保持输出的专业性和准确性。
         Return your response as a JSON blob
         json格式如下：
@@ -220,8 +220,8 @@ async def update_xhs_note_comment(note_id: str, comment_item: Dict):
             ## 限制
             - 仅基于提供的帖子标题、内容和其它客户的评论进行判断。
             - 意向率百分比应基于实际内容的分析，而不是主观猜测。
-            - 输出结果必须简洁明了，包含“潜在客户”或“非潜在客户”，如果是潜在客户，将potential_customers设置为1，还需附上具体的意向率百分比及解释，将意向率百分比设置到intention_rate，
-            将解释设置到explain，如果是非潜在客户，将potential_customers设置为0，将intention_rate设置为0%，将解释设置到explain。
+            - 输出结果必须简洁明了，包含“潜在客户”或“非潜在客户”，如果是潜在客户，将potential_customers设置为"潜在客户"，还需附上具体的意向率百分比及解释，将意向率百分比设置到intention_rate，
+            将解释设置到explain，如果是非潜在客户，将potential_customers设置为"非潜在客户"，将intention_rate设置为0%，将解释设置到explain。
             - 不引入无关信息，保持输出的专业性和准确性。
             Return your response as a JSON blob
             json格式如下：
