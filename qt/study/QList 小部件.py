@@ -21,7 +21,7 @@ def main():
     listWidget.addItem("Item 2");
     listWidget.addItem("Item 3");
     listWidget.addItem("Item 4");
-
+    
     listWidget.setWindowTitle('PyQT QListwidget Demo')
     listWidget.itemClicked.connect(listWidget.Clicked)
 

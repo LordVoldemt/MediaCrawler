@@ -34,7 +34,7 @@ def window():
     close_btn.clicked.connect(win.close)  # 直接连接窗口的close方法
 
     # 设置窗口win的几何位置和大小，起始坐标为(100, 100)，宽度为200，高度为100
-    win.setGeometry(1024, 768, 1024, 768)
+    win.setGeometry(800, 400, 1024, 768)
 
     # 设置窗口win的标题为"PyQt5"
     win.setWindowTitle("PyQt5")
