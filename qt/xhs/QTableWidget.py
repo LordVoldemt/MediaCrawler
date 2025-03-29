@@ -40,20 +40,20 @@ class tab_demo(QMainWindow):
         layout.addLayout(add_button_layout)
 
         # 创建表格控件
-        self.table = QTableWidget(0, 6)  # 初始0行6列
-        self.table.setHorizontalHeaderLabels(["城市", "关键词", "帖子排序", "分析评论", "状态", "操作"])
+        self.table = QTableWidget(0, 7)  # 初始0行7列
+        self.table.setHorizontalHeaderLabels(["城市", "关键词", "帖子排序", "分析评论", "跟踪帖子数量", "状态", "操作"])
         self.table.horizontalHeader().setDefaultAlignment(Qt.AlignLeft)  # 表头左对齐
         layout.addWidget(self.table)  # 将表格添加到布局
 
         self.tab1.setLayout(layout)  # 设置标签页的布局
 
-    def add_row(self, city, keyword, post_sort, analyze_comments, status):
+    def add_row(self, city, keyword, post_sort, analyze_comments, track_count, status):
         """向表格添加新行"""
         row_position = self.table.rowCount()
         self.table.insertRow(row_position)  # 插入新行
 
         # 添加前5列的数据
-        for col, value in enumerate([city, keyword, post_sort, analyze_comments, status]):
+        for col, value in enumerate([city, keyword, post_sort, analyze_comments, track_count, status]):
             item = QTableWidgetItem(value)
             item.setTextAlignment(Qt.AlignLeft | Qt.AlignVCenter)  # 设置单元格文本对齐方式
             self.table.setItem(row_position, col, item)
@@ -63,35 +63,35 @@ class tab_demo(QMainWindow):
 
         # 创建四个操作按钮
         restart_btn = QPushButton("重启")
-        pause_btn = QPushButton("暂停")
-        edit_btn = QPushButton("编辑")
+        # edit_btn = QPushButton("编辑")
         delete_btn = QPushButton("删除")
 
         # 统一设置按钮大小
-        for btn in [restart_btn, pause_btn, edit_btn, delete_btn]:
+        for btn in [restart_btn, delete_btn]:
             btn.setFixedSize(50, 50)
 
         # 添加按钮到布局，并设置间距
         btn_layout.addStretch()  # 左侧弹性空间
         btn_layout.addWidget(restart_btn)
         btn_layout.addSpacing(10)  # 按钮间距
-        btn_layout.addWidget(pause_btn)
-        btn_layout.addSpacing(10)
-        btn_layout.addWidget(edit_btn)
+        # btn_layout.addWidget(edit_btn)
         btn_layout.addSpacing(10)
         btn_layout.addWidget(delete_btn)
         btn_layout.addStretch()  # 右侧弹性空间
 
         # 绑定按钮事件
-        edit_btn.clicked.connect(lambda: self.open_form(edit=True, row=row_position))
+        # edit_btn.clicked.connect(lambda: self.open_form(edit=True, row=row_position))
         delete_btn.clicked.connect(lambda: self.table.removeRow(row_position))
 
         # 将按钮布局放入容器并添加到表格单元格
         container = QWidget()
         container.setLayout(btn_layout)
-        self.table.setCellWidget(row_position, 5, container)  # 添加到第6列(操作列)
+        self.table.setCellWidget(row_position, 6, container)  # 添加到第6列(操作列)
 
     def open_form(self, edit=False, row=None):
+        if edit and row is not None:
+            print(f"编辑任务，行号: {row}")
+            return  # 如果是编辑模式但没有指定行，不执行操作
         """打开添加/编辑任务的对话框"""
         dialog = QDialog(self)
         dialog.setWindowTitle("添加/编辑任务")
@@ -174,7 +174,8 @@ class tab_demo(QMainWindow):
         """保存表单数据并关闭对话框"""
         print(
             f"Saved: City={city}, Keyword={keyword}, Post Sort={post_sort}, Analyze Comments={analyze_comments}, track_count={track_count},status={status}")
-        self.add_row(city, keyword, post_sort, analyze_comments, status)
+        self.add_row(city, keyword, post_sort, analyze_comments, track_count, status)
+        # 启动任务，
         dialog.accept()  # 关闭对话框
 
     def tab2UI(self):
